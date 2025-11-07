@@ -1,0 +1,877 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Neon Chat - Fixed</title>
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Arial', sans-serif;
+        }
+
+        body {
+            background: linear-gradient(135deg, #0f0f1f, #1a1a2e);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .screen {
+            width: 100%;
+            max-width: 500px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .card {
+            background: rgba(25, 25, 35, 0.95);
+            border-radius: 15px;
+            padding: 40px;
+            box-shadow: 0 0 30px rgba(0, 255, 255, 0.4);
+            border: 1px solid rgba(0, 255, 255, 0.3);
+            backdrop-filter: blur(10px);
+            width: 100%;
+            text-align: center;
+        }
+
+        .neon-text {
+            color: #00ffff;
+            text-shadow: 0 0 10px #00ffff, 0 0 20px #00ffff;
+            margin-bottom: 30px;
+            font-size: 2.5em;
+            font-weight: bold;
+        }
+
+        .subtitle {
+            color: #00ff88;
+            margin-bottom: 30px;
+            font-size: 1.2em;
+            line-height: 1.5;
+        }
+
+        .form-group {
+            margin-bottom: 25px;
+            text-align: left;
+        }
+
+        .form-label {
+            display: block;
+            color: #00ff88;
+            margin-bottom: 10px;
+            font-weight: bold;
+            font-size: 1.1em;
+        }
+
+        .form-input {
+            width: 100%;
+            padding: 15px;
+            background: rgba(255, 255, 255, 0.1);
+            border: 2px solid #00ffff;
+            border-radius: 10px;
+            color: #00ffff;
+            font-size: 16px;
+            outline: none;
+            transition: all 0.3s ease;
+        }
+
+        .form-input:focus {
+            box-shadow: 0 0 20px #00ffff;
+            background: rgba(255, 255, 255, 0.15);
+        }
+
+        .btn {
+            padding: 18px 40px;
+            border: none;
+            border-radius: 10px;
+            font-size: 1.2em;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin: 10px;
+            min-width: 200px;
+        }
+
+        .btn-primary {
+            background: linear-gradient(45deg, #ff00ff, #00ffff);
+            color: #0f0f1f;
+            box-shadow: 0 0 20px rgba(255, 0, 255, 0.5);
+        }
+
+        .btn-primary:hover {
+            box-shadow: 0 0 30px rgba(255, 0, 255, 0.8);
+            transform: translateY(-3px);
+        }
+
+        .btn-secondary {
+            background: transparent;
+            border: 2px solid #00ff88;
+            color: #00ff88;
+        }
+
+        .btn-secondary:hover {
+            background: rgba(0, 255, 136, 0.1);
+            box-shadow: 0 0 20px #00ff88;
+            transform: translateY(-2px);
+        }
+
+        .btn-large {
+            padding: 20px 50px;
+            font-size: 1.3em;
+            margin: 15px;
+        }
+
+        .btn-full {
+            width: 100%;
+            margin: 8px 0;
+        }
+
+        .hidden {
+            display: none !important;
+        }
+
+        .choice-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 25px;
+            margin-top: 30px;
+        }
+
+        .choice-btn {
+            width: 100%;
+            padding: 25px;
+            font-size: 1.3em;
+            text-align: center;
+            border-radius: 12px;
+        }
+
+        /* Chat Interface Styles */
+        .chat-container {
+            display: flex;
+            width: 100%;
+            max-width: 1200px;
+            gap: 20px;
+        }
+
+        .sidebar {
+            width: 300px;
+            flex-shrink: 0;
+        }
+
+        .chat-area {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .chat-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid rgba(0, 255, 255, 0.3);
+        }
+
+        .user-info {
+            color: #00ff88;
+            font-weight: bold;
+        }
+
+        .chat-messages {
+            height: 400px;
+            overflow-y: auto;
+            margin-bottom: 20px;
+            padding: 15px;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 10px;
+            border: 1px solid rgba(0, 255, 255, 0.2);
+        }
+
+        .message {
+            margin-bottom: 15px;
+            padding: 12px;
+            border-radius: 10px;
+            background: rgba(255, 255, 255, 0.05);
+            border-left: 3px solid #00ffff;
+        }
+
+        .message.own-message {
+            border-left-color: #ff00ff;
+            background: rgba(255, 0, 255, 0.1);
+        }
+
+        .message.private-message {
+            border-left-color: #ffaa00;
+            background: rgba(255, 170, 0, 0.1);
+        }
+
+        .message.system {
+            border-left-color: #00ff88;
+            background: rgba(0, 255, 136, 0.1);
+            text-align: center;
+            font-style: italic;
+        }
+
+        .message-header {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 5px;
+        }
+
+        .message-user {
+            color: #00ff88;
+            font-weight: bold;
+        }
+
+        .message-user.own-user {
+            color: #ff00ff;
+        }
+
+        .message-user.private-user {
+            color: #ffaa00;
+        }
+
+        .message-time {
+            color: rgba(0, 255, 255, 0.7);
+            font-size: 0.8em;
+        }
+
+        .message-text {
+            color: #ffffff;
+            font-size: 16px;
+            line-height: 1.4;
+        }
+
+        .input-group {
+            display: flex;
+            gap: 10px;
+        }
+
+        .message-input {
+            flex: 1;
+            padding: 15px;
+            background: rgba(255, 255, 255, 0.1);
+            border: 2px solid #ff00ff;
+            border-radius: 8px;
+            color: #ffffff;
+            font-size: 16px;
+        }
+
+        .message-input:focus {
+            box-shadow: 0 0 15px #ff00ff;
+            outline: none;
+        }
+
+        .send-btn {
+            background: linear-gradient(45deg, #ff00ff, #00ffff);
+            border: none;
+            border-radius: 8px;
+            padding: 0 25px;
+            color: #0f0f1f;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        .send-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        /* Users List */
+        .users-list {
+            margin-top: 20px;
+        }
+
+        .user-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 12px;
+            margin: 8px 0;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .user-item:hover {
+            background: rgba(0, 255, 255, 0.1);
+            transform: translateX(5px);
+        }
+
+        .user-item.active {
+            background: rgba(255, 170, 0, 0.2);
+            border: 1px solid #ffaa00;
+        }
+
+        .private-chat-btn {
+            background: rgba(255, 170, 0, 0.2);
+            border: 1px solid #ffaa00;
+            color: #ffaa00;
+            padding: 8px 12px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 0.9em;
+        }
+
+        .private-chat-btn:hover {
+            background: rgba(255, 170, 0, 0.3);
+        }
+
+        /* Rooms List */
+        .rooms-list {
+            margin: 20px 0;
+        }
+
+        .room-item {
+            padding: 12px;
+            margin: 5px 0;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border-left: 3px solid transparent;
+        }
+
+        .room-item.active {
+            border-left-color: #00ffff;
+            background: rgba(0, 255, 255, 0.1);
+        }
+
+        .room-item:hover {
+            background: rgba(0, 255, 255, 0.15);
+        }
+
+        .back-btn {
+            background: transparent;
+            border: 2px solid #00ffff;
+            color: #00ffff;
+            padding: 10px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            margin-top: 20px;
+        }
+
+        .chat-messages::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        .chat-messages::-webkit-scrollbar-track {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 4px;
+        }
+
+        .chat-messages::-webkit-scrollbar-thumb {
+            background: #00ffff;
+            border-radius: 4px;
+        }
+
+        @media (max-width: 768px) {
+            .card {
+                padding: 30px 20px;
+            }
+            
+            .chat-container {
+                flex-direction: column;
+            }
+            
+            .sidebar {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Registration Screen -->
+    <div class="screen" id="registration-screen">
+        <div class="card">
+            <div class="neon-text">🚀 Neon Chat</div>
+            <div class="subtitle">
+                Welcome! Please register to start chatting
+            </div>
+            
+            <div class="form-group">
+                <label class="form-label">👤 Username</label>
+                <input type="text" class="form-input" id="username-input" 
+                       placeholder="Choose your username" autocomplete="off">
+            </div>
+            
+            <div class="form-group">
+                <label class="form-label">📧 Email</label>
+                <input type="email" class="form-input" id="email-input" 
+                       placeholder="your@email.com" autocomplete="off">
+            </div>
+            
+            <button class="btn btn-primary btn-full" onclick="registerUser()">
+                Join Chat ›
+            </button>
+        </div>
+    </div>
+
+    <!-- Choice Screen -->
+    <div class="screen hidden" id="choice-screen">
+        <div class="card">
+            <div class="neon-text">💬 Chat Options</div>
+            <div class="subtitle">
+                How would you like to chat, <span id="welcome-username" style="color: #00ff88;"></span>?
+            </div>
+            
+            <div class="choice-container">
+                <button class="btn btn-primary btn-large choice-btn" onclick="chooseGroupChat()">
+                    💬 Group Chat
+                </button>
+
+                <button class="btn btn-secondary btn-large choice-btn" onclick="choosePrivateChat()">
+                    🔒 Private Messages
+                </button>
+
+                <button class="btn btn-secondary btn-full" onclick="logout()">
+                    ← Sign Out
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Group Chat Interface -->
+    <div class="chat-container hidden" id="group-chat-interface">
+        <div class="card sidebar">
+            <div class="neon-text" style="font-size: 1.3em;">🗨️ Rooms</div>
+            <div class="rooms-list" id="rooms-list">
+                <!-- Rooms will be populated here -->
+            </div>
+            
+            <div class="neon-text" style="font-size: 1.3em; margin-top: 25px;">👥 Online Users</div>
+            <div class="users-list" id="group-users-list">
+                <div class="message system">Loading users...</div>
+            </div>
+
+            <button class="back-btn btn-full" onclick="goBackToChoice()">
+                ← Back to Menu
+            </button>
+        </div>
+
+        <div class="card chat-area">
+            <div class="chat-header">
+                <div class="neon-text" style="font-size: 1.3em;" id="current-room">General</div>
+                <div class="user-info">
+                    <span id="current-username" style="color: #00ff88;"></span>
+                    <div style="color: #00ffff; font-size: 0.9em;">Online: <span id="users-count">1</span></div>
+                </div>
+            </div>
+
+            <div class="chat-messages" id="group-messages">
+                <div class="message system">
+                    <div class="message-text">Welcome to group chat! Join a room to start chatting.</div>
+                </div>
+            </div>
+
+            <div class="input-group">
+                <input type="text" class="message-input" id="group-message-input" 
+                       placeholder="Type your message here...">
+                <button class="send-btn" onclick="sendGroupMessage()">Send</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Private Chat Interface -->
+    <div class="chat-container hidden" id="private-chat-interface">
+        <div class="card sidebar">
+            <div class="neon-text" style="font-size: 1.3em;">🔒 Private Chats</div>
+            <div class="users-list" id="private-users-list">
+                <div class="message system">Loading users...</div>
+            </div>
+
+            <button class="back-btn btn-full" onclick="goBackToChoice()">
+                ← Back to Menu
+            </button>
+        </div>
+
+        <div class="card chat-area">
+            <div class="chat-header">
+                <div class="neon-text" style="font-size: 1.3em;">Private Messages</div>
+                <div class="user-info">
+                    <span id="private-current-username" style="color: #00ff88;"></span>
+                    <div style="color: #00ffff; font-size: 0.9em;" id="private-chat-status">Select a user to start chatting</div>
+                </div>
+            </div>
+
+            <div class="chat-messages" id="private-messages">
+                <div class="message system">
+                    <div class="message-text">Select a user from the sidebar to start a private conversation.</div>
+                </div>
+            </div>
+
+            <div class="input-group">
+                <input type="text" class="message-input" id="private-message-input" 
+                       placeholder="Select a user to chat..." disabled>
+                <button class="send-btn" id="private-send-btn" onclick="sendPrivateMessage()" disabled>Send</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="/socket.io/socket.io.js"></script>
+    <script>
+    // Chat Application - Fixed Version
+    const socket = io();
+    let currentUser = '';
+    let currentUserId = '';
+    let isRegistered = false;
+    let onlineUsers = [];
+    let rooms = [];
+    let currentRoom = 'General';
+    let activePrivateChat = null;
+
+    console.log('🚀 Chat Application Loading...');
+
+    // Registration Function
+    function registerUser() {
+        const username = document.getElementById('username-input').value.trim();
+        const email = document.getElementById('email-input').value.trim();
+
+        if (username && email) {
+            currentUser = username;
+            isRegistered = true;
+            
+            document.getElementById('welcome-username').textContent = username;
+            document.getElementById('registration-screen').classList.add('hidden');
+            document.getElementById('choice-screen').classList.remove('hidden');
+            
+            socket.emit('user-registered', { 
+                username: username, 
+                email: email 
+            });
+            
+            console.log('✅ User registered:', username);
+        } else {
+            alert('Please fill in both username and email!');
+        }
+    }
+
+    // Navigation Functions
+    function chooseGroupChat() {
+        document.getElementById('choice-screen').classList.add('hidden');
+        document.getElementById('group-chat-interface').classList.remove('hidden');
+        document.getElementById('current-username').textContent = currentUser;
+    }
+
+    function choosePrivateChat() {
+        document.getElementById('choice-screen').classList.add('hidden');
+        document.getElementById('private-chat-interface').classList.remove('hidden');
+        document.getElementById('private-current-username').textContent = currentUser;
+        updatePrivateUserList();
+    }
+
+    function goBackToChoice() {
+        document.getElementById('group-chat-interface').classList.add('hidden');
+        document.getElementById('private-chat-interface').classList.add('hidden');
+        document.getElementById('choice-screen').classList.remove('hidden');
+        activePrivateChat = null;
+        resetPrivateChatInput();
+    }
+
+    function logout() {
+        currentUser = '';
+        isRegistered = false;
+        onlineUsers = [];
+        activePrivateChat = null;
+        
+        document.getElementById('choice-screen').classList.add('hidden');
+        document.getElementById('registration-screen').classList.remove('hidden');
+        document.getElementById('username-input').value = '';
+        document.getElementById('email-input').value = '';
+    }
+
+    // Group Chat Functions
+    function sendGroupMessage() {
+        const input = document.getElementById('group-message-input');
+        const messageText = input.value.trim();
+        
+        if (messageText) {
+            console.log('📤 Sending group message:', messageText);
+            socket.emit('send-group-message', {
+                text: messageText
+            });
+            
+            input.value = '';
+        }
+    }
+
+    function joinRoom(roomName) {
+        currentRoom = roomName;
+        socket.emit('join-room', { roomName: roomName });
+        document.getElementById('current-room').textContent = roomName;
+        
+        // Update active room in UI
+        document.querySelectorAll('.room-item').forEach(item => {
+            item.classList.remove('active');
+            if (item.dataset.room === roomName) {
+                item.classList.add('active');
+            }
+        });
+    }
+
+    // Private Chat Functions - FIXED
+    function startPrivateChat(userId, username) {
+        console.log('🔒 Starting private chat with:', username, 'ID:', userId);
+        
+        activePrivateChat = { userId, username };
+        
+        // Enable input fields
+        const input = document.getElementById('private-message-input');
+        const btn = document.getElementById('private-send-btn');
+        const status = document.getElementById('private-chat-status');
+        
+        input.disabled = false;
+        input.placeholder = `Message ${username}...`;
+        btn.disabled = false;
+        status.textContent = `💬 Chatting with ${username}`;
+        status.style.color = '#ffaa00';
+        
+        // Update UI to show active chat
+        updatePrivateUserList();
+        
+        // Load conversation history
+        socket.emit('get-private-conversation', {
+            otherUserId: userId
+        });
+        
+        // Focus on input
+        input.focus();
+        
+        console.log('✅ Private chat activated with:', username);
+    }
+
+    function resetPrivateChatInput() {
+        const input = document.getElementById('private-message-input');
+        const btn = document.getElementById('private-send-btn');
+        const status = document.getElementById('private-chat-status');
+        
+        input.disabled = true;
+        input.value = '';
+        input.placeholder = 'Select a user first';
+        btn.disabled = true;
+        status.textContent = 'Select a user to start chatting';
+        status.style.color = '#00ffff';
+    }
+
+    function sendPrivateMessage() {
+        if (!activePrivateChat) {
+            alert('Please select a user first!');
+            return;
+        }
+
+        const input = document.getElementById('private-message-input');
+        const text = input.value.trim();
+        
+        if (text) {
+            console.log('📤 Sending private message to:', activePrivateChat.username, ':', text);
+            socket.emit('send-private-message', {
+                toUserId: activePrivateChat.userId,
+                text: text
+            });
+            input.value = '';
+        } else {
+            alert('Please type a message first!');
+        }
+    }
+
+    // Update user lists - FIXED
+    function updateUserLists() {
+        updateGroupUserList();
+        updatePrivateUserList();
+    }
+
+    function updateGroupUserList() {
+        const groupList = document.getElementById('group-users-list');
+        
+        if (onlineUsers.length === 0) {
+            groupList.innerHTML = '<div class="message system">No other users online</div>';
+            return;
+        }
+
+        groupList.innerHTML = '';
+        onlineUsers.forEach(user => {
+            if (user.id === socket.id) return;
+            
+            const userItem = document.createElement('div');
+            userItem.className = 'user-item';
+            userItem.innerHTML = `
+                <span>${user.username}</span>
+                <button class="private-chat-btn" onclick="startPrivateChat('${user.id}', '${user.username}')">Private</button>
+            `;
+            groupList.appendChild(userItem);
+        });
+    }
+
+    function updatePrivateUserList() {
+        const privateList = document.getElementById('private-users-list');
+        
+        if (onlineUsers.length === 0) {
+            privateList.innerHTML = '<div class="message system">No other users online</div>';
+            return;
+        }
+
+        privateList.innerHTML = '';
+        onlineUsers.forEach(user => {
+            if (user.id === socket.id) return;
+            
+            const isActive = activePrivateChat && activePrivateChat.userId === user.id;
+            const userItem = document.createElement('div');
+            userItem.className = `user-item ${isActive ? 'active' : ''}`;
+            userItem.innerHTML = `
+                <span>${user.username}</span>
+                <button class="private-chat-btn" onclick="startPrivateChat('${user.id}', '${user.username}')">
+                    ${isActive ? 'Active' : 'Chat'}
+                </button>
+            `;
+            privateList.appendChild(userItem);
+        });
+    }
+
+    function updateRoomsList() {
+        const roomsList = document.getElementById('rooms-list');
+        roomsList.innerHTML = '';
+        
+        rooms.forEach(room => {
+            const roomItem = document.createElement('div');
+            roomItem.className = `room-item ${room === currentRoom ? 'active' : ''}`;
+            roomItem.dataset.room = room;
+            roomItem.innerHTML = `# ${room}`;
+            roomItem.onclick = () => joinRoom(room);
+            roomsList.appendChild(roomItem);
+        });
+    }
+
+    // Add message to chat
+    function addMessage(message, isPrivate = false) {
+        console.log('📝 Adding message:', message);
+        
+        const container = isPrivate ? 
+            document.getElementById('private-messages') : 
+            document.getElementById('group-messages');
+        
+        const msgDiv = document.createElement('div');
+        
+        const isOwnMessage = message.userId === socket.id || message.fromUserId === socket.id;
+        const isSystemMessage = message.user === 'System';
+        const isPrivateMessage = message.type === 'private';
+        
+        msgDiv.className = `message ${isOwnMessage ? 'own-message' : ''} ${isSystemMessage ? 'system' : ''} ${isPrivateMessage ? 'private-message' : ''}`;
+        
+        const displayName = isPrivateMessage ? 
+            (isOwnMessage ? 'You' : message.fromUsername) : 
+            message.user;
+        
+        msgDiv.innerHTML = `
+            <div class="message-header">
+                <span class="message-user ${isOwnMessage ? 'own-user' : ''} ${isPrivateMessage ? 'private-user' : ''}">
+                    ${displayName}
+                    ${isPrivateMessage ? ' 🔒' : ''}
+                </span>
+                <span class="message-time">${message.time}</span>
+            </div>
+            <div class="message-text">${message.text}</div>
+        `;
+        
+        container.appendChild(msgDiv);
+        container.scrollTop = container.scrollHeight;
+    }
+
+    // Socket Event Handlers
+    socket.on('login-success', (data) => {
+        console.log('✅ Login success, users:', data.onlineUsers);
+        currentUserId = socket.id;
+        onlineUsers = data.onlineUsers || [];
+        rooms = data.rooms || ['General'];
+        
+        updateRoomsList();
+        updateUserLists();
+        
+        // Load initial room messages
+        if (data.roomMessages) {
+            data.roomMessages.forEach(message => addMessage(message));
+        }
+    });
+
+    socket.on('user-joined', (data) => {
+        console.log('👋 User joined:', data.username);
+        onlineUsers = data.onlineUsers || [];
+        updateUserLists();
+    });
+
+    socket.on('user-left', (data) => {
+        console.log('👋 User left:', data.username);
+        onlineUsers = data.onlineUsers || [];
+        updateUserLists();
+    });
+
+    socket.on('new-message', (message) => {
+        console.log('📨 New public message:', message);
+        addMessage(message, false);
+    });
+
+    socket.on('new-private-message', (message) => {
+        console.log('📨 New private message:', message);
+        addMessage(message, true);
+    });
+
+    socket.on('users-update', (users) => {
+        console.log('👥 Users updated:', users);
+        onlineUsers = users || [];
+        updateUserLists();
+        document.getElementById('users-count').textContent = (users?.length || 0) + 1;
+    });
+
+    socket.on('room-changed', (data) => {
+        console.log('🔄 Room changed to:', data.room);
+        const messagesDiv = document.getElementById('group-messages');
+        messagesDiv.innerHTML = '';
+        if (data.messages) {
+            data.messages.forEach(message => addMessage(message));
+        }
+    });
+
+    socket.on('private-conversation-loaded', (data) => {
+        console.log('📂 Private conversation loaded:', data.conversation);
+        const container = document.getElementById('private-messages');
+        container.innerHTML = '';
+        
+        if (!data.conversation || data.conversation.length === 0) {
+            container.innerHTML = '<div class="message system">Start a new conversation with ' + (activePrivateChat ? activePrivateChat.username : 'this user') + '</div>';
+        } else {
+            data.conversation.forEach(msg => {
+                addMessage(msg, true);
+            });
+        }
+    });
+
+    // Event Listeners
+    document.getElementById('email-input').addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') registerUser();
+    });
+
+    document.getElementById('group-message-input').addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') sendGroupMessage();
+    });
+
+    document.getElementById('private-message-input').addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') sendPrivateMessage();
+    });
+
+    // Focus on username field
+    document.getElementById('username-input').focus();
+
+    console.log('✅ Chat application ready');
+</script>
+</body> 
+</html>
